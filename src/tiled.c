@@ -68,7 +68,7 @@ void tiled_set_render_offset(Tiled *tiled, Position offset) {
 	tiled->map_rect.pos = offset;
 }
 
-void tiled_render(display_context_t disp, Tiled *tiled, Rect screen_rect, Position view_position) {
+void tiled_render(surface_t *disp, Tiled *tiled, Rect screen_rect, Position view_position) {
 	CHECK_BOUNDS()
 
 	SET_VARS()

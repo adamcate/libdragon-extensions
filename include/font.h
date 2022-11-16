@@ -36,7 +36,7 @@ void graphics_set_color_font(uint32_t forecolor, uint32_t backcolor);
  * @param[in] msg
  *            The ASCII null terminated string to draw to the screen.
  */
-void graphics_draw_text_font(surface_t disp, int x, int y, const char *const msg);
+void graphics_draw_text_font(surface_t *disp, int x, int y, const char *const msg);
 
 /**
  * @brief Draw a character to the screen using the built-in font
@@ -55,4 +55,4 @@ void graphics_draw_text_font(surface_t disp, int x, int y, const char *const msg
  * @param[in] ch
  *            The ASCII character to draw to the screen.
  */
-void graphics_draw_character_font(surface_t disp, int x, int y, char ch);
+void graphics_draw_character_font(surface_t *disp, int x, int y, char ch);

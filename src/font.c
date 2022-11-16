@@ -48,7 +48,7 @@ void graphics_set_color_font(uint32_t forecolor, uint32_t backcolor) {
 	b_color = backcolor;
 }
 
-void graphics_draw_text_font(display_context_t disp, int x, int y, const char *const msg) {
+void graphics_draw_text_font(surface_t *disp, int x, int y, const char *const msg) {
 	if (!disp || !msg || !sprite_font.sprite) {
 		return;
 	}
@@ -80,7 +80,7 @@ void graphics_draw_text_font(display_context_t disp, int x, int y, const char *c
 	}
 }
 
-void graphics_draw_character_font(display_context_t disp, int x, int y, char ch) {
+void graphics_draw_character_font(surface_t *disp, int x, int y, char ch) {
 	if (disp == 0) {
 		return;
 	}
