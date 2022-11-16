@@ -49,6 +49,7 @@ Tiled *tiled_init(MemZone *memory_pool, sprite_t *sprite, const char *map_path, 
 	tiled_map->map_size = map_size;
 	tiled_map->tile_size = tile_size;
 	tiled_map->sprite = sprite;
+	tiled_map->format = sprite_get_format(sprite);
 	tiled_map->offset = new_position_zero();
 	tiled_map->map_rect = new_rect(tiled_map->offset, new_size(map_size.width * tile_size.width,
 															   map_size.height * tile_size.height));
@@ -81,26 +82,61 @@ void tiled_render(surface_t *disp, Tiled *tiled, Rect screen_rect, Position view
 }
 
 void tiled_render_rdp(Tiled *tiled, Rect screen_rect, Position view_position) {
-	CHECK_BOUNDS()
-
-	rdp_sync(SYNC_PIPE);
-	SET_VARS()
+	CHECK_BOUNDS();
+	SET_VARS();
 
 	int last_tile = -1;
+	surface_t tiled_surf = sprite_get_pixels(tiled->sprite);	// The surface pointing to the pixels of the tiled sprite 
+
+	int tex_width = tiled->sprite->width / tiled->sprite->hslices;	// The width of the slice to load
+	int tex_height = tiled->sprite->height / tiled->sprite->vslices;// The height of the slice to load
+
+	int s_0;	// leftmost s coordinate
+	int t_0;	// leftmost t coordinate
+	int s_1;	// rightmost s coordinate
+	int t_1;	// rightmost t coordinate
+
+	tex_format_t sprite_format = sprite_get_format(tiled->sprite);
+
+	// TODO: this is currently only configured to handle one palette per tilemap
+	// in the future, multiple palettes should be handled per tilemap
+
+	// if the image is paletted, load its color palette
+	if(sprite_format == FMT_CI4){	
+		rdpq_mode_tlut(TLUT_RGBA16);
+		rdpq_tex_load_tlut(sprite_get_palette(tiled->sprite), 0, 16);
+	}
+	if(sprite_format == FMT_CI8){
+		rdpq_mode_tlut(TLUT_RGBA16);
+		rdpq_tex_load_tlut(sprite_get_palette(tiled->sprite), 0, 256);
+	}
+
+	rdpq_mode_copy(true);	// Switch to faster copy mode, since we aren't using mirroring
 
 	BEGIN_LOOP()
 
-	if (last_tile != tiled->map[tile]) {
+	if (last_tile != tiled->map[tile]) {	// don't reload the texture into TMEM if the previous tile also used this segment
+
 		last_tile = tiled->map[tile];
-		rdp_load_texture_stride(0, 0, MIRROR_DISABLED, tiled->sprite, tiled->map[tile]);
+
+		s_0 = ((int)(tiled->map[tile]) % tiled->sprite->hslices) * tex_width;
+		t_0 = ((int)(tiled->map[tile]) / tiled->sprite->hslices) * tex_height;
+		s_1 = s_0 + tex_width - 1;
+		t_1 = t_0 + tex_height - 1;
+
+		rdpq_tex_load_sub(TILE0, &tiled_surf, 0, s_0, t_0, s_1, t_1);
 	}
 
-	rdp_draw_textured_rectangle(0, screen_x, screen_y, screen_x + tiled->tile_size.width,
-								screen_y + tiled->tile_size.height, MIRROR_DISABLED);
+	rdpq_texture_rectangle(TILE0, screen_x, screen_y, screen_x + tiled->tile_size.width,
+					 			screen_y + tiled->tile_size.height, s_0, t_0, 1.f, 1.f);
 
-	END_LOOP()
+	rdpq_mode_tlut(TLUT_NONE);	// reset to TLUT_NONE for the next draw call
+	END_LOOP();
 }
 
+// TODO: We should try to support larger tilemaps by loading in chunks of tiles and
+// drawing using S, T coordinates. This might require a tilemap data format
+// rework or some compile-time preprocessing
 void tiled_render_fast(Tiled *tiled, Rect screen_rect, Position view_position) {
 	CHECK_BOUNDS()
 
@@ -120,6 +156,9 @@ void tiled_render_fast(Tiled *tiled, Rect screen_rect, Position view_position) {
 	END_LOOP()
 }
 
+// TODO: Maybe this function should enable mirroring during the draw process per tile
+// using rdpq_texture_rectangle_flip and rdpq_mode_standard,
+// switching between copy and standard as needed
 void tiled_render_fast_mirror(Tiled *tiled, Rect screen_rect, Position view_position) {
 	CHECK_BOUNDS()
 
