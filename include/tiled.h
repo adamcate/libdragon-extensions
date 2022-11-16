@@ -69,7 +69,7 @@ void tiled_set_render_offset(Tiled *tiled, Position offset);
  * @param view_position
  *        Position on where to draw the map on screen. Can be used for split-screen.
  */
-void tiled_render(display_context_t disp, Tiled *tiled, Rect screen_rect, Position view_position);
+void tiled_render(surface_t disp, Tiled *tiled, Rect screen_rect, Position view_position);
 
 /**
  * @brief Render a Tiled map using hardware rendering. Use this when there's not much texture
