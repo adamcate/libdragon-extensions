@@ -20,6 +20,8 @@ typedef struct {
 	Size tile_size;
 	/// Sprite used to render.
 	sprite_t *sprite;
+	/// Texture format of the sprite
+	tex_format_t format;
 	/// Offset to render the map.
 	Position offset;
 	/// Map position and size in pixels
