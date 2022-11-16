@@ -24,6 +24,8 @@ typedef struct {
 	Size size;
 	/// Offset of the frame (to use when rendering)
 	Position render_offset;
+	/// The texture format of the sprite
+	tex_format_t format;
 
 	/// Current offset
 	float _current_offset;

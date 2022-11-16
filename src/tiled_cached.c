@@ -14,6 +14,7 @@ TiledCached *tiled_cached_init(MemZone *memory_pool, sprite_t *sprite, const cha
 	tiled_map->map_size = map_size;
 	tiled_map->tile_size = tile_size;
 	tiled_map->sprite = sprite;
+	tiled_map->format = sprite_get_format(sprite);
 
 	// allocate map
 	char *map = malloc(map_size.width * map_size.height);

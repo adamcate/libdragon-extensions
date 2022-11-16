@@ -16,6 +16,8 @@ typedef struct {
 	Position *positions;
 	/// Sprite used to render the batch.
 	sprite_t *sprite;
+	/// Format of the sprite to batch
+	tex_format_t format;
 	/// Amount of sprites to render.
 	size_t qty;
 	/// Size of the sprites.

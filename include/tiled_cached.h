@@ -29,6 +29,8 @@ typedef struct {
 	Size tile_size;
 	/// Sprite used to render the tiles.
 	sprite_t *sprite;
+	/// The format of the sprite
+	tex_format_t format;
 } TiledCached;
 
 /**
