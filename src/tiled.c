@@ -134,14 +134,16 @@ void tiled_render_rdp(Tiled *tiled, Rect screen_rect, Position view_position) {
 	END_LOOP();
 }
 
-// TODO: We should try to support larger tilemaps by loading in chunks of tiles and
-// drawing using S, T coordinates. This might require a tilemap data format
-// rework or some compile-time preprocessing
+
 void tiled_render_fast(Tiled *tiled, Rect screen_rect, Position view_position) {
+
 	CHECK_BOUNDS()
 
-	rdp_sync(SYNC_PIPE);
-	rdp_load_texture(0, 0, MIRROR_DISABLED, tiled->sprite);
+	surface_t tiled_surf = sprite_get_pixels(tiled->sprite);
+
+	rdpq_tex_load(TILE0, &tiled_surf, 0);
+
+	rdpq_mode_copy(true);
 
 	SET_VARS()
 
@@ -149,16 +151,14 @@ void tiled_render_fast(Tiled *tiled, Rect screen_rect, Position view_position) {
 
 	int s = (tiled->map[tile] % tiled->sprite->hslices) * tiled->tile_size.width;
 	int t = (tiled->map[tile] / tiled->sprite->hslices) * tiled->tile_size.height;
-	rdp_draw_textured_rectangle_scaled_text_coord(
-		0, screen_x, screen_y, screen_x + tiled->tile_size.width - 1,
-		screen_y + tiled->tile_size.height - 1, 1, 1, s, t, MIRROR_DISABLED);
+
+	rdpq_texture_rectangle(TILE0, screen_x, screen_y, screen_x + tiled->tile_size.width - 1,
+				screen_y + tiled->tile_size.width - 1, s, t, 1.f, 1.f);
 
 	END_LOOP()
 }
 
-// TODO: Maybe this function should enable mirroring during the draw process per tile
-// using rdpq_texture_rectangle_flip and rdpq_mode_standard,
-// switching between copy and standard as needed
+
 void tiled_render_fast_mirror(Tiled *tiled, Rect screen_rect, Position view_position) {
 	CHECK_BOUNDS()
 
