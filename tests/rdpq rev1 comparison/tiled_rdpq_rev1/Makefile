@@ -1,0 +1,51 @@
+BUILD_DIR=build
+
+include $(N64_INST)/include/n64.mk
+
+src = $(wildcard source/*.c) \
+	  $(wildcard source/ld_ext/*.c)
+
+assets_xm = $(wildcard assets/*.xm)
+assets_wav = $(wildcard assets/*.wav)
+assets_png = $(wildcard assets/*.png)
+
+assets_conv = $(addprefix filesystem/,$(notdir $(assets_xm:%.xm=%.xm64))) \
+              $(addprefix filesystem/,$(notdir $(assets_wav:%.wav=%.wav64))) \
+              $(addprefix filesystem/,$(notdir $(assets_png:%.png=%.sprite))) \
+			  $(wildcard filesystem/*)
+
+AUDIOCONV_FLAGS ?=
+MKSPRITE_FLAGS ?=
+
+CFLAGS += -I./source/ld_ext/
+
+all: tiled_rdpq_test.z64
+
+filesystem/%.xm64: assets/%.xm
+	@mkdir -p $(dir $@)
+	@echo "    [AUDIO] $@"
+	@$(N64_AUDIOCONV) $(AUDIOCONV_FLAGS) -o filesystem $<
+
+filesystem/%.wav64: assets/%.wav
+	@mkdir -p $(dir $@)
+	@echo "    [AUDIO] $@"
+	@$(N64_AUDIOCONV) -o filesystem $<
+
+filesystem/%.sprite: assets/%.png
+	@mkdir -p $(dir $@)
+	@echo "    [SPRITE] $@"
+	@$(N64_MKSPRITE) $(MKSPRITE_FLAGS) -o filesystem "$<"
+
+
+$(BUILD_DIR)/tiled_rdpq_test.dfs: $(assets_conv)
+$(BUILD_DIR)/tiled_rdpq_test.elf: $(src:%.c=$(BUILD_DIR)/%.o)
+
+tiled_rdpq_test.z64: N64_ROM_TITLE="Tiled RDPQ test"
+tiled_rdpq_test.z64: $(BUILD_DIR)/tiled_rdpq_test.dfs 
+
+clean:
+	rm -rf $(BUILD_DIR) tiled_rdpq_test.z64
+
+-include $(wildcard $(BUILD_DIR)/*.d)
+
+.PHONY: all clean
