@@ -111,7 +111,7 @@ void tiled_render_rdp(Tiled *tiled, Rect screen_rect, Position view_position) {
 		rdpq_tex_load_tlut(sprite_get_palette(tiled->sprite), 0, 256);
 	}
 
-	rdpq_mode_copy(true);	// Switch to faster copy mode, since we aren't using mirroring
+	rdpq_set_mode_copy(true);	// Switch to faster copy mode, since we aren't using mirroring
 
 	BEGIN_LOOP()
 
@@ -143,7 +143,7 @@ void tiled_render_fast(Tiled *tiled, Rect screen_rect, Position view_position) {
 
 	rdpq_tex_load(TILE0, &tiled_surf, 0);
 
-	rdpq_mode_copy(true);
+	rdpq_set_mode_copy(true);
 
 	SET_VARS()
 

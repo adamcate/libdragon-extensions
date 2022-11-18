@@ -71,7 +71,7 @@ void tiled_cached_render(TiledCached *tiled, Rect screen_rect) {
 	int s_1;	// rightmost s coordinate
 	int t_1;	// rightmost t coordinate
 
-	rdpq_mode_copy(true);
+	rdpq_set_mode_copy(true);
 
 	for (size_t i = 0; i < 255; ++i) {
 		if (tiled->tiles[i].count > 0) {
@@ -81,7 +81,7 @@ void tiled_cached_render(TiledCached *tiled, Rect screen_rect) {
 			s_1 = s_0 + tex_width - 1;
 			t_1 = s_1 + tex_height - 1;
 			// load the segment into memory
-			rdpq_load_sub(TILE0, &tiled_surf, 0, s_0, t_0, s_1, t_1);
+			rdpq_tex_load_sub(TILE0, &tiled_surf, 0, s_0, t_0, s_1, t_1);
 
 			// draw the segment at every cached coordinate instance
 			for (size_t j = 0; j < tiled->tiles[i].count; ++j) {
