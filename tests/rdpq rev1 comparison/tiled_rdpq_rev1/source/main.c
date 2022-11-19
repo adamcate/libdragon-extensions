@@ -2,8 +2,6 @@
 #include "include/tiled.h"
 #include "include/mem_pool.h"
 
-const size_t zone_size = 3;
-
 static sprite_t *tiles_sprite;
 
 int main()
@@ -11,9 +9,18 @@ int main()
     display_init(RESOLUTION_320x240, DEPTH_16_BPP, 3, GAMMA_NONE, ANTIALIAS_RESAMPLE);
     dfs_init(DFS_DEFAULT_LOCATION);
 
+    const size_t zone_size = 32768;
+
+    MemZone zone;
+
+    mem_zone_init(&zone, zone_size);
+
+    
+
+
     tiles_sprite = sprite_load("rom:/tile.sprite");
 
-    Tiled *tilemap = tiled_init(NULL, tiles_sprite, "/maps/test_map.csv", new_size(20, 15), new_size(16,16));
+    Tiled *tilemap = tiled_init(&zone, tiles_sprite, "/maps/test_map.csv", new_size(20, 15), new_size(16,16));
 
     rdp_init();
     controller_init();
