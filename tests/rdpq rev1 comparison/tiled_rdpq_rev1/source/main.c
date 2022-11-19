@@ -2,7 +2,7 @@
 #include "include/tiled.h"
 #include "include/mem_pool.h"
 
-const size_t zone_size = 32768;
+const size_t zone_size = 3;
 
 static sprite_t *tiles_sprite;
 
@@ -11,26 +11,25 @@ int main()
     display_init(RESOLUTION_320x240, DEPTH_16_BPP, 3, GAMMA_NONE, ANTIALIAS_RESAMPLE);
     dfs_init(DFS_DEFAULT_LOCATION);
 
-    tiles_sprite = sprite_load("rom:/tiles.sprite");
+    tiles_sprite = sprite_load("rom:/tile.sprite");
 
-    MemZone *memory_pool = NULL;
-    mem_zone_init(memory_pool, zone_size);
-
-    Tiled *tilemap = tiled_init(memory_pool, tiles_sprite, "/maps/test_map.csv", new_size(2, 2), new_size(16,16));
+    Tiled *tilemap = tiled_init(NULL, tiles_sprite, "/maps/test_map.csv", new_size(20, 15), new_size(16,16));
 
     rdp_init();
     controller_init();
 
+    rdpq_debug_start();
+    
     Rect screen_rect = {
         .pos = new_position(0.f,0.f),
         .size = new_size(320,240)
     };
 
     Position view_position = {
-        .x = 160.f,
-        .y = 120.f
+        .x = 0.f,
+        .y = 0.f
     };
-
+    
     while(1)
     {
         surface_t *disp = display_lock();
@@ -38,7 +37,7 @@ int main()
 
         rdp_attach(disp);
 
-        tiled_render_rdp(tilemap, screen_rect, view_position);
+        tiled_render_fast(tilemap, screen_rect, view_position);
 
         rdp_detach_show(disp);
     }

@@ -36,6 +36,7 @@ filesystem/%.sprite: assets/%.png
 	@echo "    [SPRITE] $@"
 	@$(N64_MKSPRITE) $(MKSPRITE_FLAGS) -o filesystem "$<"
 
+filesystem/tile.sprite: MKSPRITE_FLAGS=--format RGBA16 --tiles 16,16
 
 $(BUILD_DIR)/tiled_rdpq_test.dfs: $(assets_conv)
 $(BUILD_DIR)/tiled_rdpq_test.elf: $(src:%.c=$(BUILD_DIR)/%.o)
