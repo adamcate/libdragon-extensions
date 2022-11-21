@@ -44,7 +44,7 @@ int main()
 
         rdp_attach(disp);
 
-        tiled_render_rdp(tilemap, screen_rect, view_position);
+        tiled_render_fast(tilemap, screen_rect, view_position);
 
         rdp_detach_show(disp);
     }

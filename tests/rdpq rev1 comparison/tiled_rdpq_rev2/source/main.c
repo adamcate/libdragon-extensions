@@ -25,7 +25,7 @@ int main()
     rdp_init();
     controller_init();
 
-    rdpq_debug_start();
+    // rdpq_debug_start();
     
     Rect screen_rect = {
         .pos = new_position(0.f,0.f),
