@@ -4,6 +4,9 @@
 
 static sprite_t *tiles_sprite;
 
+static uint32_t timer_0 = 0;
+static uint32_t timer_1 = 0;
+
 int main()
 {   
     display_init(RESOLUTION_320x240, DEPTH_16_BPP, 3, GAMMA_NONE, ANTIALIAS_RESAMPLE);
@@ -14,8 +17,6 @@ int main()
     MemZone zone;
 
     mem_zone_init(&zone, zone_size);
-
-    
 
 
     tiles_sprite = sprite_load("rom:/tile.sprite");
@@ -43,7 +44,7 @@ int main()
         if(!disp) continue;
 
         rdp_attach(disp);
-
+        
         tiled_render_rdp(tilemap, screen_rect, view_position);
 
         rdp_detach_show(disp);
