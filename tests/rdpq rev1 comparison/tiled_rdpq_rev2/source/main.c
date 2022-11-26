@@ -34,7 +34,7 @@ int main()
 
     mem_zone_init(&zone, zone_size);
 
-    
+    debug_init_usblog();
 
 
     tiles_sprite = sprite_load("rom:/tile.sprite");
@@ -45,7 +45,9 @@ int main()
     rdp_init();
     controller_init();
 
-    rdpq_debug_start();
+    // rdpq_debug_start();
+
+    
 
     timer_init();
 
