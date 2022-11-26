@@ -4,6 +4,7 @@
 
 static sprite_t *tiles_sprite;
 static sprite_t *text_sprite;
+static sprite_t *background_sprite;
 
 
 void debug_text_rdp(surface_t * disp, int num, int x, int y)
@@ -25,7 +26,7 @@ void debug_text_rdp(surface_t * disp, int num, int x, int y)
 
 int main()
 {   
-    display_init(RESOLUTION_320x240, DEPTH_16_BPP, 3, GAMMA_NONE, ANTIALIAS_RESAMPLE);
+    display_init(RESOLUTION_256x240, DEPTH_16_BPP, 3, GAMMA_NONE, ANTIALIAS_RESAMPLE);
     dfs_init(DFS_DEFAULT_LOCATION);
 
     const size_t zone_size = 32768;
@@ -39,13 +40,14 @@ int main()
 
     tiles_sprite = sprite_load("rom:/tile.sprite");
     text_sprite = sprite_load("rom:/numbers_rdp.sprite");
+    background_sprite = sprite_load("rom:/background.sprite");
 
     Tiled *tilemap = tiled_init(&zone, tiles_sprite, "/maps/test_map.csv", new_size(50, 50), new_size(16,16));
 
     rdp_init();
     controller_init();
 
-    rdpq_debug_start();
+    // rdpq_debug_start();
 
     timer_init();
 
@@ -65,7 +67,7 @@ int main()
 
     Rect screen_rect = {
         .pos = new_position(0.f,0.f),
-        .size = new_size(320,240)
+        .size = new_size(256,240)
     };
 
     uint32_t timer_0 = 0;
@@ -116,8 +118,19 @@ int main()
 
         rdp_attach(disp);
 
-        // rdpq_set_mode_fill(bk_color);
-        // rdpq_fill_rectangle(0, 0, 320, 240);
+        /*rdpq_set_mode_fill(bk_color);
+        rdpq_fill_rectangle(0, 0, 320, 240);*/
+
+        rdpq_set_mode_copy(true);
+
+        surface_t bk_surf = sprite_get_pixels(background_sprite);
+
+        for(int i = 0; i < 320; i += 40){
+            for(int j = 0; j < 320; j += 40){
+                rdpq_tex_load_sub(TILE0, &bk_surf, 0, i, j, i + 40, j + 40);
+                rdpq_texture_rectangle(TILE0, i, j, i + 40, j + 40, i, j, 1.f, 1.f);
+            }
+        }
 
         for(int i = 0; i < num_layers; ++i){
             tiled_render_rdp(tilemap, screen_rect_per_layer, view_position);

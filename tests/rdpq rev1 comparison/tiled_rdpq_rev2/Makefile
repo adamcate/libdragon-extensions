@@ -38,6 +38,7 @@ filesystem/%.sprite: assets/%.png
 
 filesystem/tile.sprite: MKSPRITE_FLAGS=--format RGBA16 --tiles 16,16
 filesystem/numbers_rdp.sprite: MKSPRITE_FLAGS=--format RGBA16 --tiles 8,8
+filesystem/background.sprite: MKSPRITE_FLAGS=--format RGBA16 --tiles 40,40
 
 $(BUILD_DIR)/tiled_rdpq_rev2_test.dfs: $(assets_conv)
 $(BUILD_DIR)/tiled_rdpq_rev2_test.elf: $(src:%.c=$(BUILD_DIR)/%.o)
