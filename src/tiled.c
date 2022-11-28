@@ -3,6 +3,7 @@
 #include <string.h>
 #include "../include/csv_reader.h"
 #include "../include/memory_alloc.h"
+#include <math.h>
 
 #define FILE_BUFFER_SIZE 100
 
@@ -82,56 +83,69 @@ void tiled_render(surface_t *disp, Tiled *tiled, Rect screen_rect, Position view
 }
 
 void tiled_render_rdp(Tiled *tiled, Rect screen_rect, Position view_position) {
-	CHECK_BOUNDS();
-	SET_VARS();
 
-	int last_tile = -1;
+
+	// new implementation
+
+	// check and set the tile index bounds of the drawn region
+	int initial_x = (screen_rect.pos.x - tiled->offset.x) / tiled->tile_size.width;
+	int initial_y = (screen_rect.pos.y - tiled->offset.y) / tiled->tile_size.height;  
+	         
+	int final_x = ((screen_rect.pos.x + screen_rect.size.width - tiled->offset.x) /             
+					  tiled->tile_size.width) +                                                    
+					 1;                                                                            
+	int final_y = ((screen_rect.pos.y + screen_rect.size.height - tiled->offset.y) /            
+					  tiled->tile_size.height) +                                                   
+					 1;
+                                                                            
+	if (initial_x < 0)                
+		initial_x = 0;          
+	if (initial_y < 0)     
+		initial_y = 0;    
+	if (final_x > tiled->map_size.width) 
+		final_x = tiled->map_size.width;
+	if (final_y > tiled->map_size.height)
+		final_y = tiled->map_size.height;
+
+	int tile_width = tiled->sprite->width / tiled->sprite->hslices;		// The width of a single tile
+	int tile_height = tiled->sprite->height / tiled->sprite->vslices;	// The height of a single tile
+
+	int tile_index = 0;
+
+	rdpq_set_mode_copy(true);
 	surface_t tiled_surf = sprite_get_pixels(tiled->sprite);	// The surface pointing to the pixels of the tiled sprite 
+	
 
-	int tex_width = tiled->sprite->width / tiled->sprite->hslices;	// The width of the slice to load
-	int tex_height = tiled->sprite->height / tiled->sprite->vslices;// The height of the slice to load
-
-	int s_0;	// leftmost s coordinate
-	int t_0;	// leftmost t coordinate
-	int s_1;	// rightmost s coordinate
-	int t_1;	// rightmost t coordinate
-
-	tex_format_t sprite_format = sprite_get_format(tiled->sprite);
-
-	// TODO: this is currently only configured to handle one palette per tilemap
-	// in the future, multiple palettes should be handled per tilemap
-
-	// if the image is paletted, load its color palette
-	if(sprite_format == FMT_CI4){	
-		rdpq_mode_tlut(TLUT_RGBA16);
-		rdpq_tex_load_tlut(sprite_get_palette(tiled->sprite), 0, 16);
-	}
-	if(sprite_format == FMT_CI8){
-		rdpq_mode_tlut(TLUT_RGBA16);
-		rdpq_tex_load_tlut(sprite_get_palette(tiled->sprite), 0, 256);
-	}
-
-	rdpq_set_mode_copy(true);	// Switch to faster copy mode, since we aren't using mirroring
-
-	BEGIN_LOOP()
-
-	if (last_tile != tiled->map[tile]) {	// don't reload the texture into TMEM if the previous tile also used this segment
-
-		last_tile = tiled->map[tile];
-
-		s_0 = ((int)(tiled->map[tile]) % tiled->sprite->hslices) * tex_width;
-		t_0 = ((int)(tiled->map[tile]) / tiled->sprite->hslices) * tex_height;
-		s_1 = s_0 + tex_width - 1;
-		t_1 = t_0 + tex_height - 1;
+	for(int tmem_load = 0; tmem_load < ceilf((float)tiled->sprite->hslices / 4); ++tmem_load)
+	{
+		// load in as a linear array of tiles 16x16 tiles for now, so only iterate along the x direction of tiles
+		int s_0 = 16 * tmem_load;
+		int t_0 = 0;
+		int s_1 = 16 * tmem_load + 16;
+		int t_1 = 16;
 
 		rdpq_tex_load_sub(TILE0, &tiled_surf, 0, s_0, t_0, s_1, t_1);
+
+		for(int tile; tile < 4; ++tile)
+		{
+			for (size_t y = initial_y; y < final_y; y++) 
+			{                                              
+				for (size_t x = initial_x; x < final_x; x++) 
+				{                                             
+					size_t tile = (y * (int)tiled->map_size.width) + x;                                    
+					if (tiled->map[tile] == -1)                                                            
+						continue;                                                                          
+					int screen_x = x * tiled->tile_size.width - screen_rect.pos.x + tiled->offset.x +      
+						   view_position.x;                                                        
+					int screen_y = y * tiled->tile_size.height - screen_rect.pos.y + tiled->offset.y + 
+						   view_position.y;
+
+					rdpq_texture_rectangle(TILE0, screen_x, screen_y, screen_x + 16, screen_y + 16, s_0, t_0, 1.f, 1.f);
+				}
+			}
+		}
 	}
 
-	rdpq_texture_rectangle(TILE0, screen_x, screen_y, screen_x + tiled->tile_size.width,
-					 			screen_y + tiled->tile_size.height, s_0, t_0, 1.f, 1.f);
-
-	rdpq_mode_tlut(TLUT_NONE);	// reset to TLUT_NONE for the next draw call
-	END_LOOP();
 }
 
 
@@ -165,7 +179,7 @@ void tiled_render_fast_mirror(Tiled *tiled, Rect screen_rect, Position view_posi
 	rdp_sync(SYNC_PIPE);
 	rdp_load_texture(0, 0, MIRROR_XY, tiled->sprite);
 
-	SET_VARS()
+	/*SET_VARS()
 
 	BEGIN_LOOP()
 
@@ -175,7 +189,7 @@ void tiled_render_fast_mirror(Tiled *tiled, Rect screen_rect, Position view_posi
 		0, screen_x, screen_y, screen_x + tiled->tile_size.width - 1,
 		screen_y + tiled->tile_size.height - 1, 1, 1, s, t, MIRROR_DISABLED);
 
-	END_LOOP()
+	END_LOOP()*/
 }
 
 void tiled_destroy(Tiled *tiled) {
