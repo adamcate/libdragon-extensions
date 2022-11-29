@@ -19,7 +19,7 @@ MKSPRITE_FLAGS ?=
 
 CFLAGS += -I./source/ld_ext/
 
-all: tiled_rdpq_rev2_test.z64
+all: animated_sprite_test.z64
 
 filesystem/%.xm64: assets/%.xm
 	@mkdir -p $(dir $@)
@@ -36,19 +36,18 @@ filesystem/%.sprite: assets/%.png
 	@echo "    [SPRITE] $@"
 	@$(N64_MKSPRITE) $(MKSPRITE_FLAGS) -o filesystem "$<"
 
-filesystem/tile.sprite: MKSPRITE_FLAGS=--format RGBA16 --tiles 16,16
-filesystem/numbers_rdp.sprite: MKSPRITE_FLAGS=--format RGBA16 --tiles 8,8
-filesystem/background.sprite: MKSPRITE_FLAGS=--format RGBA16 --tiles 40,40
-filesystem/background_middle.sprite: MKSPRITE_FLAGS=--format CI4 --tiles 64,64
+filesystem/spritesheet.sprite: MKSPRITE_FLAGS=--format RGBA16 --tiles 16,16
+filesystem/alucard_rgb.sprite: MKSPRITE_FLAGS=--format RGBA16
+filesystem/big_sprite.sprite: MKSPRITE_FLAGS=--format RGBA16
 
-$(BUILD_DIR)/tiled_rdpq_rev2_test.dfs: $(assets_conv)
-$(BUILD_DIR)/tiled_rdpq_rev2_test.elf: $(src:%.c=$(BUILD_DIR)/%.o)
+$(BUILD_DIR)/animated_sprite_test.dfs: $(assets_conv)
+$(BUILD_DIR)/animated_sprite_test.elf: $(src:%.c=$(BUILD_DIR)/%.o)
 
-tiled_rdpq_rev2_test.z64: N64_ROM_TITLE="Tiled RDPQ Rev2 test"
-tiled_rdpq_rev2_test.z64: $(BUILD_DIR)/tiled_rdpq_rev2_test.dfs 
+animated_sprite_test.z64: N64_ROM_TITLE="Animated Sprite Test"
+animated_sprite_test.z64: $(BUILD_DIR)/animated_sprite_test.dfs 
 
 clean:
-	rm -rf $(BUILD_DIR) tiled_rdpq_rev2_test.z64
+	rm -rf $(BUILD_DIR) animated_sprite_test.z64
 
 -include $(wildcard $(BUILD_DIR)/*.d)
 

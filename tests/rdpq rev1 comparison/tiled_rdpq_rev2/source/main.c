@@ -5,6 +5,10 @@
 static sprite_t *tiles_sprite;
 static sprite_t *text_sprite;
 static sprite_t *background_sprite;
+static sprite_t *middle_sprite;
+
+static rspq_block_t* bk_block;
+static rspq_block_t* bk_block_2;
 
 
 void debug_text_rdp(surface_t * disp, int num, int x, int y)
@@ -24,9 +28,10 @@ void debug_text_rdp(surface_t * disp, int num, int x, int y)
 
 }
 
+
 int main()
 {   
-    display_init(RESOLUTION_256x240, DEPTH_16_BPP, 3, GAMMA_NONE, ANTIALIAS_RESAMPLE);
+    display_init(RESOLUTION_320x240, DEPTH_16_BPP, 3, GAMMA_CORRECT_DITHER, ANTIALIAS_RESAMPLE);
     dfs_init(DFS_DEFAULT_LOCATION);
 
     const size_t zone_size = 32768;
@@ -41,13 +46,14 @@ int main()
     tiles_sprite = sprite_load("rom:/tile.sprite");
     text_sprite = sprite_load("rom:/numbers_rdp.sprite");
     background_sprite = sprite_load("rom:/background.sprite");
+    middle_sprite = sprite_load("rom:/background_middle.sprite");
 
     Tiled *tilemap = tiled_init(&zone, tiles_sprite, "/maps/test_map.csv", new_size(50, 50), new_size(16,16));
 
     rdp_init();
     controller_init();
 
-    // rdpq_debug_start();
+    rdpq_debug_start();
 
     timer_init();
 
@@ -67,7 +73,7 @@ int main()
 
     Rect screen_rect = {
         .pos = new_position(0.f,0.f),
-        .size = new_size(256,240)
+        .size = new_size(320,240)
     };
 
     uint32_t timer_0 = 0;
@@ -76,10 +82,21 @@ int main()
 
     int timer = 0;
 
+    rspq_block_begin();
+    tiled_render_rdp(tilemap, screen_rect, view_position);
+    bk_block = rspq_block_end();
+
+    screen_rect.pos.x += 10;
+    screen_rect.pos.y += 10;
+    rspq_block_begin();
+    tiled_render_rdp(tilemap, screen_rect, view_position);
+    bk_block_2 = rspq_block_end();
+
     while(1)
     {
         surface_t *disp = display_lock();
         if(!disp) continue;
+
         timer_1 = get_ticks_ms();
         if(timer % 10 == 0){ 
             if(delta_time > 0.f){delta_time = 1000.f / (float)(timer_1 - timer_0);}
@@ -114,7 +131,7 @@ int main()
 
         if(num_layers < 0) num_layers = 0;
 
-        Rect screen_rect_per_layer = screen_rect;
+        // Rect screen_rect_per_layer = screen_rect;
 
         rdp_attach(disp);
 
@@ -129,13 +146,46 @@ int main()
             for(int j = 0; j < 320; j += 40){
                 rdpq_tex_load_sub(TILE0, &bk_surf, 0, i, j, i + 40, j + 40);
                 rdpq_texture_rectangle(TILE0, i, j, i + 40, j + 40, i, j, 1.f, 1.f);
+
             }
         }
 
+        /* surface_t middle_surf = sprite_get_pixels(middle_sprite);
+
+        rdpq_mode_tlut(TLUT_RGBA16);
+        rdpq_tex_load_tlut(sprite_get_palette(middle_sprite), 0, 16);
+
+        for(int i = 0; i < 320; i += 64){
+            for(int j = 0; j < 240; j+=64){
+                
+                int x_0 = i;
+                int y_0 = j;
+
+                int x_1 = x_0 + 64;
+                int y_1 = y_0 + 64;
+
+                int s_0 = i;
+                int t_0 = j;
+
+                int s_1 = s_0 + 64;
+                int t_1 = t_0 + 64;
+
+                if(s_1 >= middle_sprite->width){
+                    s_1 = middle_sprite->width - 1;
+                    x_1 = middle_sprite->width - 1;
+                }
+
+                rdpq_tex_load_sub(TILE0, &middle_surf, 0, s_0, t_0, s_1, t_1);
+                rdpq_texture_rectangle(TILE0, x_0, y_0, x_1, y_1, s_0 , t_0, 1.f, 1.f);
+            }
+        }
+        
+        rdpq_mode_tlut(TLUT_NONE);*/
+
+        rspq_block_run(bk_block);
+
         for(int i = 0; i < num_layers; ++i){
-            tiled_render_rdp(tilemap, screen_rect_per_layer, view_position);
-            screen_rect_per_layer.pos.x += 5;
-            screen_rect_per_layer.pos.y += 5;
+            rspq_block_run(bk_block_2);
         }
 
         debug_text_rdp(disp, (int)delta_time, 20, 20);
