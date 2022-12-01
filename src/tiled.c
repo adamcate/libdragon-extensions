@@ -107,45 +107,56 @@ void tiled_render_rdp(Tiled *tiled, Rect screen_rect, Position view_position) {
 	if (final_y > tiled->map_size.height)
 		final_y = tiled->map_size.height;
 
-	int tile_width = tiled->sprite->width / tiled->sprite->hslices;		// The width of a single tile
-	int tile_height = tiled->sprite->height / tiled->sprite->vslices;	// The height of a single tile
-
 	int tile_index = 0;
 
 	rdpq_set_mode_copy(true);
 	surface_t tiled_surf = sprite_get_pixels(tiled->sprite);	// The surface pointing to the pixels of the tiled sprite 
 	
-
-	for(int tmem_load = 0; tmem_load < ceilf((float)tiled->sprite->hslices / 4); ++tmem_load)
+	for(int tmem_load_y = 0; tmem_load_y < tiled->sprite->height; tmem_load_y += 16)
 	{
-		// load in as a linear array of tiles 16x16 tiles for now, so only iterate along the x direction of tiles
-		int s_0 = 16 * tmem_load;
-		int t_0 = 0;
-		int s_1 = 16 * tmem_load + 16;
-		int t_1 = 16;
-
-		rdpq_tex_load_sub(TILE0, &tiled_surf, 0, s_0, t_0, s_1, t_1);
-
-		for(int tile; tile < 4; ++tile)
+		for(int tmem_load_x = 0; tmem_load_x < tiled->sprite->width; tmem_load_x += 128)
 		{
-			for (size_t y = initial_y; y < final_y; y++) 
-			{                                              
-				for (size_t x = initial_x; x < final_x; x++) 
-				{                                             
-					size_t tile = (y * (int)tiled->map_size.width) + x;                                    
-					if (tiled->map[tile] == -1)                                                            
-						continue;                                                                          
-					int screen_x = x * tiled->tile_size.width - screen_rect.pos.x + tiled->offset.x +      
-						   view_position.x;                                                        
-					int screen_y = y * tiled->tile_size.height - screen_rect.pos.y + tiled->offset.y + 
-						   view_position.y;
+			// load in as a linear array of tiles 16x16 tiles for now, so only iterate along the x direction of tiles
+			int s_0 = tmem_load_x;
+			int t_0 = tmem_load_y;
 
-					rdpq_texture_rectangle(TILE0, screen_x, screen_y, screen_x + 16, screen_y + 16, s_0, t_0, 1.f, 1.f);
+			int s_1 = s_0 + 128;
+			int t_1 = t_0 + 16;
+			
+			if(s_1 >= 1024){s_1 = 1023;}
+
+			rdpq_tex_load_sub(TILE0, &tiled_surf, 0, s_0, t_0, s_1, t_1);
+
+
+			for(int sub_tile = 0; sub_tile < 8; ++sub_tile)
+			{
+				for (size_t y = initial_y; y < final_y; y++) 
+				{                                              
+					for (size_t x = initial_x; x < final_x; x++) 
+					{                                             
+						size_t tile = (y * (int)tiled->map_size.width) + x;    
+														
+						if (tiled->map[tile] != tile_index)                                                            
+							continue;                                                            
+						int screen_x = x * tiled->tile_size.width - screen_rect.pos.x + tiled->offset.x +      
+							view_position.x;                                                        
+						int screen_y = y * tiled->tile_size.height - screen_rect.pos.y + tiled->offset.y + 
+							view_position.y;
+
+						int screen_actual_x = screen_x;
+						int screen_actual_y = screen_y;
+
+						if(screen_actual_x < 0) screen_actual_x = 0;
+						if(screen_actual_y < 0) screen_actual_y = 0;
+						rdpq_texture_rectangle(TILE0, screen_actual_x, screen_actual_y, screen_x + 16, screen_y + 16, s_0 + 16 * sub_tile + screen_actual_x - screen_x,
+							t_0 + screen_actual_y-screen_y, 1.f, 1.f);
+					}
 				}
+				++tile_index;
 			}
 		}
-	}
 
+	}
 }
 
 
