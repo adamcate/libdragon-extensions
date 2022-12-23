@@ -4,7 +4,7 @@
 #include "tiled.h"
 #include "size.h"
 
-#ifndef __cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -15,6 +15,6 @@ fnRenderLayer layer_tiled_render(Layer *instance);
 
 fnRenderLayer layer_image_render(Layer *instance);
 
-#ifndef __cplusplus
+#ifdef __cplusplus
 }
 #endif
