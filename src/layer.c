@@ -32,3 +32,12 @@ LayerManager *layer_manager_init(MemZone *memory_pool, int slots_max) {
 
 	return manager;
 }
+
+void layer_manager_render(LayerManager *manager, Rect screen_rect, Position view_position) {
+	for (int index = 0; index < manager->slots_max; ++index) {
+		if (manager->layer_enabled[index])
+
+			manager->layer_array[index].render_callback(&manager->layer_array[index], view_position,
+														screen_rect);
+	}
+}
