@@ -9,7 +9,8 @@ extern "C" {
 #endif
 
 Layer layer_init_tiled(MemZone *memory_pool, sprite_t *sprite, const char *map_path, Size map_size,
-					   Size tile_size, layer_priority_t render_priority, int ID);
+					   Size tile_size, layer_priority_t render_priority, int ID, float parallax_x,
+					   float parallax_y);
 
 void layer_render_tiled(Layer *instance, Position view_position, Rect screen_rect);
 
