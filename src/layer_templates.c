@@ -1,5 +1,5 @@
 #include "../include/layer_templates.h"
-#include "tiled.h"
+#include "../include/tiled.h"
 
 Layer layer_init_tiled(MemZone *memory_pool, sprite_t *sprite, const char *map_path, Size map_size,
 					   Size tile_size, layer_priority_t render_priority, int ID) {

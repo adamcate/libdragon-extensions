@@ -1,5 +1,5 @@
 #include "../include/layer.h"
-#include "memory_alloc.h"
+#include "../include/memory_alloc.h"
 
 Layer new_layer(fnIRenderLayer render_callback, layer_priority_t priority, int ID,
 				float parallax_factor_x, float parallax_factor_y, void *layer_data) {
