@@ -18,3 +18,17 @@ Layer new_layer(fnIRenderLayer render_callback, layer_priority_t priority, int I
 void layer_render(Layer *layer, Rect screen_rect, Position view_position) {
 	layer->render_callback(layer, view_position, screen_rect);
 }
+
+LayerManager *layer_manager_init(MemZone *memory_pool, int slots_max) {
+	LayerManager *manager = mem_zone_alloc(memory_pool, sizeof(LayerManager));
+	manager->layer_array = mem_zone_alloc(memory_pool, sizeof(Layer) * slots_max);
+	manager->layer_enabled = mem_zone_alloc(memory_pool, sizeof(bool) * slots_max);
+
+	for (int index = 0; index < slots_max; ++index)
+		manager->layer_enabled[index] = false;
+
+	manager->slots_max = slots_max;
+	manager->slots_occupied = 0;
+
+	return manager;
+}
