@@ -41,3 +41,10 @@ void layer_manager_render(LayerManager *manager, Rect screen_rect, Position view
 														screen_rect);
 	}
 }
+
+void layer_manager_add_layer(LayerManager *manager, Layer layer) {
+	if (manager->slots_occupied >= manager->slots_max)
+		return;
+
+	manager->layer_array[manager->slots_occupied++] = layer;
+}
