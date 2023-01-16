@@ -113,6 +113,8 @@ void tiled_render_rdp(Tiled *tiled, Rect screen_rect, Position view_position) {
 	// initialize tile_surface to point to the pixels of the sprite's tileset
 	surface_t tile_surface = sprite_get_pixels(tiled->sprite);
 
+	int hslices = tiled->sprite->width / tex_size.width;
+
 	BEGIN_LOOP()
 
 	// if the tile has changed between this and last index, load it into TMEM
@@ -120,8 +122,8 @@ void tiled_render_rdp(Tiled *tiled, Rect screen_rect, Position view_position) {
 		last_tile = tiled->map[tile];
 
 		// configure the loaded region for this tile
-		tex_coord_left.x = (tiled->map[tile] % tiled->sprite->hslices) * tex_size.width;
-		tex_coord_left.y = (tiled->map[tile] / tiled->sprite->hslices) * tex_size.height;
+		tex_coord_left.x = (tiled->map[tile] % hslices) * tex_size.width;
+		tex_coord_left.y = (tiled->map[tile] / hslices) * tex_size.height;
 		tex_coord_right.x = tex_coord_left.x + tex_size.width;
 		tex_coord_right.y = tex_coord_left.y + tex_size.height;
 
