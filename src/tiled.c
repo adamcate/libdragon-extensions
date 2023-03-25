@@ -37,12 +37,10 @@
 			int32_t tile = (y * (int)tiled->map_size.width) + x;                                   \
 			if (tile < 0)                                                                          \
 				continue;                                                                          \
-			int32_t screen_x = (x - initial_x) * tiled->tile_size.width + screen_rect.pos.x +      \
-							   scroll_offset_x;                                                    \
+			int screen_x = (x - initial_x) * tiled->tile_size.width + screen_rect.pos.x +          \
+						   scroll_offset_x;                                                        \
 			int screen_y = (y - initial_y) * tiled->tile_size.height + screen_rect.pos.y +         \
 						   scroll_offset_y;                                                        \
-			int screen_actual_x = screen_x;                                                        \
-			int screen_actual_y = screen_y;                                                        \
 			if (tiled->map[tile] == -1)                                                            \
 				continue;
 
@@ -127,8 +125,7 @@ void tiled_render_rdp(Tiled *tiled, Rect screen_rect, Position view_position) {
 		rdpq_tex_load_sub(TILE0, &tile_surface, 0, tex_coord_left.x, tex_coord_left.y,
 						  tex_coord_right.x, tex_coord_right.y);
 	}
-
-	rdpq_texture_rectangle(TILE0, screen_actual_x, screen_actual_y, screen_x + tex_size.width,
+	rdpq_texture_rectangle(TILE0, screen_x, screen_y, screen_x + tex_size.width,
 						   screen_y + tex_size.height, tex_coord_left.x, tex_coord_left.y);
 
 	END_LOOP()
